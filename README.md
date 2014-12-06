@@ -36,9 +36,9 @@ You can register ssh-based repository as below:
             "location": "/mnt/snapshot",
             "host": "123.123.123.123",
             "port": 22,
-            "username": "snapshotuser",
-            "private_key": "/home/user/.ssh/id_rsa",
-            "known_hosts": "/home/user/.ssh/known_hosts",
+            "username": "snapshot_user",
+            "private_key": "/home/snapshot_user/.ssh/id_rsa",
+            "known_hosts": "/home/snapshot_user/.ssh/known_hosts",
             "compress": true
         }
     }'
