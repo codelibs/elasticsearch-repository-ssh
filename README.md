@@ -10,6 +10,7 @@ Repository SSH Plugin provides SSH repository for Elasticsearch's Snapshot/Resto
 | Version   | Elasticsearch |
 |:---------:|:-------------:|
 | master    | 1.4.X         |
+| 1.4.0     | 1.4.1         |
 
 ### Issues/Questions
 
@@ -19,8 +20,6 @@ Please file an [issue](https://github.com/codelibs/elasticsearch-repository-ssh/
 ## Installation
 
 ### Install Repository SSH Plugin
-
-TBD
 
     $ $ES_HOME/bin/plugin --install org.codelibs/elasticsearch-repository-ssh/1.4.0
 
