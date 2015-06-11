@@ -56,16 +56,25 @@ public class SshBlobContainer extends AbstractBlobContainer {
 
     @Override
     public ImmutableMap<String, BlobMetaData> listBlobs() throws IOException {
+        return listBlobsByPrefix(null);
+    }
+
+    @Override
+    public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(
+            String blobNamePrefix) throws IOException {
         try (JschChannel channel = blobStore.getClient().getChannel()) {
             final Vector<LsEntry> entries = channel.ls(path());
             if (entries.isEmpty()) {
                 return ImmutableMap.of();
             }
 
+            final String namePrefix = blobNamePrefix == null ? ""
+                    : blobNamePrefix;
             final MapBuilder<String, BlobMetaData> builder = MapBuilder
                     .newMapBuilder();
             for (final LsEntry entry : entries) {
-                if (entry.getAttrs().isReg()) {
+                if (entry.getAttrs().isReg()
+                        && entry.getFilename().startsWith(namePrefix)) {
                     builder.put(entry.getFilename(), new PlainBlobMetaData(
                             entry.getFilename(), entry.getAttrs().getSize()));
                 }
@@ -122,4 +131,5 @@ public class SshBlobContainer extends AbstractBlobContainer {
                     e);
         }
     }
+
 }
