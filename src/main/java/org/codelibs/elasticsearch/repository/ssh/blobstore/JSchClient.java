@@ -276,6 +276,11 @@ public class JSchClient {
                 }
 
                 @Override
+                public int read(byte b[], int off, int len) throws IOException {
+                    return is.read(b, off, len);
+                }
+
+                @Override
                 public void close() throws IOException {
                     is.close();
                     JschChannel.this.close();
@@ -292,6 +297,11 @@ public class JSchClient {
                 @Override
                 public void write(final int b) throws IOException {
                     os.write(b);
+                }
+
+                @Override
+                public void write(byte b[], int off, int len) throws IOException {
+                    os.write(b, off, len);
                 }
 
                 @Override
