@@ -22,6 +22,8 @@ package org.codelibs.elasticsearch.repository.ssh.blobstore;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 import org.codelibs.elasticsearch.repository.ssh.blobstore.JSchClient.JschChannel;
@@ -29,12 +31,13 @@ import org.elasticsearch.common.blobstore.BlobMetaData;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.support.AbstractBlobContainer;
 import org.elasticsearch.common.blobstore.support.PlainBlobMetaData;
-import org.elasticsearch.common.collect.ImmutableMap;
+import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.MapBuilder;
 
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.SftpException;
+import org.elasticsearch.common.io.Streams;
 
 /**
  *
@@ -44,8 +47,8 @@ public class SshBlobContainer extends AbstractBlobContainer {
     protected final SshBlobStore blobStore;
 
     public SshBlobContainer(final SshBlobStore blobStore,
-            final BlobPath blobPath) throws IOException, JSchException,
-            SftpException {
+        final BlobPath blobPath) throws IOException, JSchException,
+        SftpException {
         super(blobPath);
         this.blobStore = blobStore;
 
@@ -55,45 +58,56 @@ public class SshBlobContainer extends AbstractBlobContainer {
     }
 
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobs() throws IOException {
+    public Map<String, BlobMetaData> listBlobs() throws IOException {
         return listBlobsByPrefix(null);
     }
 
     @Override
-    public ImmutableMap<String, BlobMetaData> listBlobsByPrefix(
-            String blobNamePrefix) throws IOException {
+    public Map<String, BlobMetaData> listBlobsByPrefix(
+        String blobNamePrefix) throws IOException {
         try (JschChannel channel = blobStore.getClient().getChannel()) {
             final Vector<LsEntry> entries = channel.ls(path());
             if (entries.isEmpty()) {
-                return ImmutableMap.of();
+                return new HashMap<>();
             }
 
             final String namePrefix = blobNamePrefix == null ? ""
-                    : blobNamePrefix;
+                : blobNamePrefix;
             final MapBuilder<String, BlobMetaData> builder = MapBuilder
-                    .newMapBuilder();
+                .newMapBuilder();
             for (final LsEntry entry : entries) {
                 if (entry.getAttrs().isReg()
-                        && entry.getFilename().startsWith(namePrefix)) {
+                    && entry.getFilename().startsWith(namePrefix)) {
                     builder.put(entry.getFilename(), new PlainBlobMetaData(
-                            entry.getFilename(), entry.getAttrs().getSize()));
+                        entry.getFilename(), entry.getAttrs().getSize()));
                 }
             }
             return builder.immutableMap();
         } catch (SftpException | JSchException e) {
             throw new IOException("Failed to load files in "
-                    + path().buildAsString("/"), e);
+                + path().buildAsString("/"), e);
         }
     }
 
     @Override
-    public boolean deleteBlob(final String blobName) throws IOException {
+    public void move(String sourceBlobName, String targetBlobName) throws IOException {
+        final BlobPath sourcePath = path().add(sourceBlobName);
+        final BlobPath targetPath = path().add(targetBlobName);
+        try {
+            JschChannel channel = blobStore.getClient().getChannel();
+            channel.move(sourcePath.buildAsString("/"), targetPath.buildAsString("/"));
+        } catch (JSchException |SftpException e) {
+            throw new IOException(e);
+        }
+    }
+
+    @Override
+    public void deleteBlob(final String blobName) throws IOException {
         final BlobPath path = path().add(blobName);
         try (JschChannel channel = blobStore.getClient().getChannel()) {
             channel.rm(path);
-            return true;
         } catch (SftpException | JSchException e) {
-            return false;
+            throw new IOException(e);
         }
     }
 
@@ -109,26 +123,43 @@ public class SshBlobContainer extends AbstractBlobContainer {
     }
 
     @Override
-    public InputStream openInput(final String blobName) throws IOException {
+    public InputStream readBlob(String blobName) throws IOException {
         final BlobPath path = path().add(blobName);
         try {
             final JschChannel channel = blobStore.getClient().getChannel();
             return channel.get(path);
         } catch (SftpException | JSchException e) {
             throw new IOException("Failed to load " + path.buildAsString("/"),
-                    e);
+                e);
         }
     }
 
     @Override
-    public OutputStream createOutput(final String blobName) throws IOException {
+    public void writeBlob(String blobName, InputStream inputStream, long blobSize)
+        throws IOException {
+        try (OutputStream stream = createOutput(blobName)) {
+            Streams.copy(inputStream, stream);
+        }
+
+    }
+
+    @Override
+    public void writeBlob(String blobName, BytesReference bytes) throws IOException {
+        try (OutputStream stream = createOutput(blobName)) {
+            bytes.writeTo(stream);
+        }
+
+    }
+
+
+    private OutputStream createOutput(final String blobName) throws IOException {
         final BlobPath path = path().add(blobName);
         try {
             final JschChannel channel = blobStore.getClient().getChannel();
             return channel.put(path);
         } catch (SftpException | JSchException e) {
             throw new IOException("Failed to open " + path.buildAsString("/"),
-                    e);
+                e);
         }
     }
 

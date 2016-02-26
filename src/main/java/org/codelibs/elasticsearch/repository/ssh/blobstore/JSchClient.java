@@ -27,18 +27,14 @@ import java.util.Queue;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import com.jcraft.jsch.*;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.repositories.RepositorySettings;
 import org.elasticsearch.threadpool.ThreadPool;
 
-import com.jcraft.jsch.ChannelSftp;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
-import com.jcraft.jsch.JSch;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
-import com.jcraft.jsch.SftpException;
 
 /**
  * JSchClient manages SSH connections on JSch.
@@ -64,22 +60,22 @@ public class JSchClient {
     private boolean ignoreHostKeyChecking;
 
     public JSchClient(final Settings componentSettings,
-            final RepositorySettings repositorySettings,
-            final ThreadPool threadPool) throws JSchException {
+        final RepositorySettings repositorySettings,
+        final ThreadPool threadPool) throws JSchException {
         password = repositorySettings.settings().get("password",
-                componentSettings.get("password"));
+            componentSettings.get("password"));
         String knownHosts = repositorySettings.settings().get("known_hosts",
-                componentSettings.get("known_hosts"));
+            componentSettings.get("known_hosts"));
         ignoreHostKeyChecking = repositorySettings.settings().getAsBoolean(
-                "ignore_host_key",
-                componentSettings.getAsBoolean("ignore_host_key", false));
+            "ignore_host_key",
+            componentSettings.getAsBoolean("ignore_host_key", false));
 
         final String privateKey = repositorySettings.settings().get(
-                "private_key", componentSettings.get("private_key"));
+            "private_key", componentSettings.get("private_key"));
 
         if (password == null && privateKey == null) {
             throw new JSchException(
-                    "A password and private key for SSH are empty.");
+                "A password and private key for SSH are empty.");
         }
 
         jsch = new JSch();
@@ -92,44 +88,44 @@ public class JSchClient {
         }
 
         host = repositorySettings.settings().get("host",
-                componentSettings.get("host"));
+            componentSettings.get("host"));
         username = repositorySettings.settings().get("username",
-                componentSettings.get("username"));
+            componentSettings.get("username"));
         port = repositorySettings.settings().getAsInt("port",
-                componentSettings.getAsInt("port", 22));
+            componentSettings.getAsInt("port", 22));
         location = repositorySettings.settings().get("location",
-                componentSettings.get("location", "~/"));
+            componentSettings.get("location", "~/"));
 
         final long sessionExpiry = repositorySettings.settings().getAsLong(
-                "session_expire",
-                componentSettings.getAsLong("session_expire", 60000L));
+            "session_expire",
+            componentSettings.getAsLong("session_expire", 60000L));
         final TimeValue cleanInterval = repositorySettings.settings()
-                .getAsTime(
-                        "clean_interval",
-                        componentSettings.getAsTime("clean_interval",
-                                TimeValue.timeValueMinutes(1)));
+            .getAsTime(
+                "clean_interval",
+                componentSettings.getAsTime("clean_interval",
+                    TimeValue.timeValueMinutes(1)));
         threadPool.schedule(cleanInterval, ThreadPool.Names.GENERIC,
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            int size = channelQueue.size();
-                            JschChannel channel = channelQueue.poll();
-                            while (channel != null && size > 0) {
-                                if (System.currentTimeMillis()
-                                        - channel.lastAccessed < sessionExpiry
-                                        && channel.isConnected()) {
-                                    channelQueue.offer(channel);
-                                }
-                                channel = channelQueue.poll();
-                                size--;
+            new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        int size = channelQueue.size();
+                        JschChannel channel = channelQueue.poll();
+                        while (channel != null && size > 0) {
+                            if (System.currentTimeMillis()
+                                - channel.lastAccessed < sessionExpiry
+                                && channel.isConnected()) {
+                                channelQueue.offer(channel);
                             }
-                        } finally {
-                            threadPool.schedule(cleanInterval,
-                                    ThreadPool.Names.GENERIC, this);
+                            channel = channelQueue.poll();
+                            size--;
                         }
+                    } finally {
+                        threadPool.schedule(cleanInterval,
+                            ThreadPool.Names.GENERIC, this);
                     }
-                });
+                }
+            });
     }
 
     public String getInfoString() {
@@ -251,14 +247,19 @@ public class JSchClient {
             }
         }
 
-        public void rmdir(final BlobPath blobPath) throws SftpException {
-            channel.rmdir(location + "/" + blobPath.buildAsString("/"));
+        public void rmdir(final BlobPath blobPath) throws JSchException {
+            //TODO: any better solution?
+            ChannelExec channel = (ChannelExec) session.openChannel("exec");
+            channel.setCommand("/bin/rm -rf " + location + "/" + blobPath.buildAsString("/"));
+            channel.connect();
+            channel.disconnect();
+            //            channel.rmdir(location + "/" + blobPath.buildAsString("/"));
         }
 
         public Vector<LsEntry> ls(final BlobPath blobPath) throws SftpException {
             @SuppressWarnings("unchecked")
             final Vector<LsEntry> entities = channel.ls(location + "/"
-                    + blobPath.buildAsString("/"));
+                + blobPath.buildAsString("/"));
             return entities;
         }
 
@@ -266,9 +267,14 @@ public class JSchClient {
             channel.rm(location + "/" + blobPath.buildAsString("/"));
         }
 
+        public void move(final String sourceBlobName, final String targetBlobName)
+            throws SftpException {
+            channel.rename(location + "/" + sourceBlobName, location + "/" + targetBlobName);
+        }
+
         public InputStream get(final BlobPath blobPath) throws SftpException {
             final InputStream is = channel.get(location + "/"
-                    + blobPath.buildAsString("/"));
+                + blobPath.buildAsString("/"));
             return new InputStream() {
                 @Override
                 public int read() throws IOException {
@@ -291,7 +297,7 @@ public class JSchClient {
 
         public OutputStream put(final BlobPath blobPath) throws SftpException {
             final OutputStream os = channel.put(location + "/"
-                    + blobPath.buildAsString("/"));
+                + blobPath.buildAsString("/"));
             return new OutputStream() {
 
                 @Override

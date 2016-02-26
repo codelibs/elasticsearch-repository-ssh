@@ -10,6 +10,7 @@ Repository SSH Plugin provides SSH repository for Elasticsearch's Snapshot/Resto
 | Version   | Elasticsearch |
 |:---------:|:-------------:|
 | master    | 1.6.X         |
+| 2.2.0     | 2.2.0         |
 | 1.6.0     | 1.6.1         |
 | 1.4.0     | 1.4.1         |
 
