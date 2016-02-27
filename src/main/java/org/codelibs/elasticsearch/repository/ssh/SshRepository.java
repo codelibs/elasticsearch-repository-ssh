@@ -50,23 +50,23 @@ public class SshRepository extends BlobStoreRepository {
 
     @Inject
     public SshRepository(final RepositoryName name,
-            final RepositorySettings repositorySettings,
-            final IndexShardRepository indexShardRepository,
-            final ThreadPool threadPool) throws IOException {
+        final RepositorySettings repositorySettings,
+        final IndexShardRepository indexShardRepository,
+        final ThreadPool threadPool) throws IOException {
         super(name.getName(), repositorySettings, indexShardRepository);
 
         try {
-            blobStore = new SshBlobStore(componentSettings, new JSchClient(
-                    componentSettings, repositorySettings, threadPool));
+            blobStore = new SshBlobStore(settings, new JSchClient(
+                settings, repositorySettings, threadPool));
         } catch (final JSchException e) {
             throw new RepositoryException(name.name(),
-                    "Failed to initialize SSH configuration.", e);
+                "Failed to initialize SSH configuration.", e);
         }
 
         chunkSize = repositorySettings.settings().getAsBytesSize("chunk_size",
-                componentSettings.getAsBytesSize("chunk_size", null));
+            settings.getAsBytesSize("chunk_size", null));
         compress = repositorySettings.settings().getAsBoolean("compress",
-                componentSettings.getAsBoolean("compress", false));
+            settings.getAsBoolean("compress", false));
         basePath = BlobPath.cleanPath();
     }
 

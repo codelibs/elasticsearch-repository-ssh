@@ -57,7 +57,7 @@ public class SshBlobStore extends AbstractComponent implements BlobStore {
             return new SshBlobContainer(this, blobPath);
         } catch (SftpException | JSchException | IOException e) {
             throw new BlobStoreException("Failed to create BlobContainer: "
-                    + blobPath, e);
+                + blobPath, e);
         }
     }
 
@@ -65,9 +65,9 @@ public class SshBlobStore extends AbstractComponent implements BlobStore {
     public void delete(final BlobPath blobPath) {
         try (JschChannel channel = jSchClient.getChannel()) {
             channel.rmdir(blobPath);
-        } catch (SftpException | JSchException | IOException e) {
+        } catch (JSchException | IOException e) {
             throw new BlobStoreException("Failed to delete "
-                    + blobPath.buildAsString("/"), e);
+                + blobPath.buildAsString("/"), e);
         }
     }
 

@@ -1,14 +1,15 @@
 package org.codelibs.elasticsearch.repository.ssh;
 
-import org.codelibs.elasticsearch.repository.ssh.module.SshRepositoryModule;
-import org.elasticsearch.plugins.AbstractPlugin;
+import org.elasticsearch.common.logging.Loggers;
+import org.elasticsearch.index.snapshots.blobstore.BlobStoreIndexShardRepository;
+import org.elasticsearch.plugins.Plugin;
 import org.elasticsearch.repositories.RepositoriesModule;
 
-public class RepositorySshPlugin extends AbstractPlugin {
+public class RepositorySshPlugin extends Plugin {
 
     @Override
     public String name() {
-        return "RepositorySshPlugin";
+        return "repository-ssh";
     }
 
     @Override
@@ -16,8 +17,11 @@ public class RepositorySshPlugin extends AbstractPlugin {
         return "This plugin provides SSH repository for Snapshot/Restore.";
     }
 
-    public void onModule(final RepositoriesModule module) {
-        module.registerRepository(SshRepository.TYPE, SshRepositoryModule.class);
+    @SuppressWarnings("unchecked")
+    public void onModule(RepositoriesModule repositoriesModule) {
+        Loggers.getLogger(RepositorySshPlugin.class).info("trying to register repository-ssh...");
+        repositoriesModule.registerRepository(SshRepository.TYPE, SshRepository.class,
+            BlobStoreIndexShardRepository.class);
     }
 
 }
