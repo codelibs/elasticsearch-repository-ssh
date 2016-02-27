@@ -253,7 +253,7 @@ public class JSchClient {
             channel.setCommand("/bin/rm -rf " + location + "/" + blobPath.buildAsString("/"));
             channel.connect();
             channel.disconnect();
-            //            channel.rmdir(location + "/" + blobPath.buildAsString("/"));
+            //channel.rmdir(location + "/" + blobPath.buildAsString("/"));
         }
 
         public Vector<LsEntry> ls(final BlobPath blobPath) throws SftpException {

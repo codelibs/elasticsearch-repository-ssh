@@ -9,7 +9,7 @@ Repository SSH Plugin provides SSH repository for Elasticsearch's Snapshot/Resto
 
 | Version   | Elasticsearch |
 |:---------:|:-------------:|
-| master    | 1.6.X         |
+| master    | 2.2.X         |
 | 2.2.0     | 2.2.0         |
 | 1.6.0     | 1.6.1         |
 | 1.4.0     | 1.4.1         |
@@ -23,7 +23,7 @@ Please file an [issue](https://github.com/codelibs/elasticsearch-repository-ssh/
 
 ### Install Repository SSH Plugin
 
-    $ $ES_HOME/bin/plugin --install org.codelibs/elasticsearch-repository-ssh/1.6.0
+    $ $ES_HOME/bin/plugin install org.codelibs/elasticsearch-repository-ssh/2.2.0
 
 ## References
 
