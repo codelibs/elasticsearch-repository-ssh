@@ -134,10 +134,8 @@ public class SshBlobContainer extends AbstractBlobContainer {
     @Override
     public void writeBlob(String blobName, InputStream inputStream, long blobSize)
         throws IOException {
-        try (OutputStream stream = createOutput(blobName)) {
-            Streams.copy(inputStream, stream);
-        }
-
+        OutputStream stream = createOutput(blobName);
+        Streams.copy(inputStream, stream);
     }
 
     @Override

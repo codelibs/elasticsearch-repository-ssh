@@ -65,7 +65,11 @@ public class SshPool {
    * @param session
    */
   public void returnSession(Session session) {
-    pool.returnObject(config, session);
+    try {
+      pool.returnObject(config, session);
+    } catch (IllegalStateException e) {
+      //ignore
+    }
   }
 
   /**
