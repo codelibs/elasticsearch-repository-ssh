@@ -54,6 +54,7 @@ where
 | port | int | Port number for SSH server |
 | username | string | User name |
 | private_key | string | Private key for "username" |
+| passphrase | string | Passphrase for "private\_key" |
 | known\_hosts | string | known\_hosts file |
 | password | string | Password for "username" if not using private\_key |
 | ignore\_host\_key | boolean | true if ignoring known\_host file |
