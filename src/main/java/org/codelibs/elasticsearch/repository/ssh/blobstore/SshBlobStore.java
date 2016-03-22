@@ -21,7 +21,6 @@ package org.codelibs.elasticsearch.repository.ssh.blobstore;
 
 import java.io.IOException;
 
-import org.codelibs.elasticsearch.repository.ssh.blobstore.JSchClient.JschChannel;
 import org.elasticsearch.common.blobstore.BlobContainer;
 import org.elasticsearch.common.blobstore.BlobPath;
 import org.elasticsearch.common.blobstore.BlobStore;
@@ -63,9 +62,9 @@ public class SshBlobStore extends AbstractComponent implements BlobStore {
 
     @Override
     public void delete(final BlobPath blobPath) {
-        try (JschChannel channel = jSchClient.getChannel()) {
-            channel.rmdir(blobPath);
-        } catch (JSchException | IOException e) {
+        try {
+            jSchClient.rmdir(blobPath);
+        } catch (Exception e) {
             throw new BlobStoreException("Failed to delete "
                 + blobPath.buildAsString("/"), e);
         }
