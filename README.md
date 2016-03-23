@@ -63,3 +63,7 @@ where
 
 The usage is the same as Elasticsearch's one.
 See [snapshot and restore](http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/modules-snapshots.html "snapshot and restore").
+
+### Note
+
+In a large cluster, you may need to increase the `MaxSessions` parameter of your sshd in repository server.
