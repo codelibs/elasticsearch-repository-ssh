@@ -36,7 +36,6 @@ public class RepositorySshPlugin extends Plugin {
         return "This plugin provides SSH repository for Snapshot/Restore.";
     }
 
-    @SuppressWarnings("unchecked")
     public void onModule(RepositoriesModule repositoriesModule) {
         Loggers.getLogger(RepositorySshPlugin.class).info("trying to register repository-ssh...");
         repositoriesModule.registerRepository(SshRepository.TYPE, SshRepository.class,

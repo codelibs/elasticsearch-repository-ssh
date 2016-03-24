@@ -47,7 +47,6 @@ public class JSchClient {
 
     private SshPool sshPool;
 
-
     public JSchClient(final Settings componentSettings,
         final RepositorySettings repositorySettings,
         final ThreadPool threadPool) throws JSchException {
@@ -235,10 +234,10 @@ public class JSchClient {
     }
 
     public Vector<LsEntry> ls(final BlobPath blobPath) throws SftpException, JSchException {
-        @SuppressWarnings("unchecked")
         Session session = sshPool.getSession();
         ChannelSftp channel = openSftpChannel(session);
         try {
+            @SuppressWarnings("unchecked")
             final Vector<LsEntry> entities =
                 channel.ls(config.getLocation() + "/" + blobPath.buildAsString("/"));
             return entities;
@@ -272,7 +271,6 @@ public class JSchClient {
         }
     }
 
-    @SuppressWarnings("resource")
     public void close() {
         sshPool.close();
     }

@@ -20,15 +20,17 @@
 package org.codelibs.elasticsearch.repository.ssh.utils;
 
 public class SshPoolException extends RuntimeException {
-  public SshPoolException(String message) {
-    super(message);
-  }
+    private static final long serialVersionUID = 1L;
 
-  public SshPoolException(Throwable e) {
-    super(e);
-  }
+    public SshPoolException(final String message) {
+        super(message);
+    }
 
-  public SshPoolException(String message, Throwable cause) {
-    super(message, cause);
-  }
+    public SshPoolException(final Throwable e) {
+        super(e);
+    }
+
+    public SshPoolException(final String message, final Throwable cause) {
+        super(message, cause);
+    }
 }
